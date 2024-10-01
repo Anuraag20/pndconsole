@@ -1,0 +1,4 @@
+*.pyc
+*.sql
+*/migrations/*
+*.sqlite3
