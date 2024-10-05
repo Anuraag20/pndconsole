@@ -1,0 +1,3 @@
+[submodule "pnd-llm-utils"]
+	path = llm-utils
+	url = git@github.com:Anuraag20/pnd-llm-utils.git

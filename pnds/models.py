@@ -14,6 +14,8 @@ class ScheduledPump(models.Model):
 
     pair = models.ForeignKey(Coin, on_delete = models.CASCADE, null = True, blank = True, related_name = 'pump_pair')
     target = models.ForeignKey(Coin, on_delete = models.CASCADE, null = True, blank = True, related_name = 'pump_target')
+    
+    exchange = models.ForeignKey(Exchange, on_delete = models.CASCADE, null = True, blank = True, related_name = 'schduled')
     scheduled_at = models.DateTimeField(null = True, blank = True)
     
     notes = models.TextField(null = True, blank = True)
@@ -28,13 +30,3 @@ class ScheduledPump(models.Model):
             self.manually_corrected = True
 
         return super(ScheduledPump, self).save(*args, **kwargs)
-    
-
-
-    
-
-            
-
-
-
-

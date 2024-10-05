@@ -23,13 +23,29 @@ class Coin(models.Model):
 
         return f'{self.name}({self.symbol})'
 
+class OHLVCQueryset(models.QuerySet):
+   
+    # edit this to make it functional later
+    def annotate_load_delay(self):
+        return self
+
+
+class OHLCVDataManager(models.Manager):
+
+    
+    def get_queryset(self):
+        return OHLVCQueryset(self.model, using = self._db)
+
+    def annotate_load_delay(self):
+        return self.get_queryset().annotate_load_delay()
+
 
 class OHLCVData(models.Model):
 
+    objects = OHLCVDataManager()
+    # Create model manager to add db field to check for discrepancy (added_at - market_time)
 
-    # Create model manager to add db field to check for discrepancy
-
-    
+    exchange = models.ForeignKey(Exchange, on_delete = models.CASCADE, related_name = 'datum')    
     coin = models.ForeignKey(Coin, on_delete = models.CASCADE, related_name = 'market_main')
     pair = models.ForeignKey(Coin, on_delete = models.CASCADE, related_name = 'market_pair')
 

@@ -11,24 +11,27 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import configparser
+import json
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+config = configparser.ConfigParser()
+config.read(BASE_DIR / 'pndconsole/config.ini')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-koz=p-h0lg^)&qowi7vzx8v+=$oz&58e)(okl2gthjfzzap4vh'
+SECRET_KEY = config['django-settings']['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config['django-settings']['DEBUG']
 
+ALLOWED_HOSTS = json.loads( config['django-settings']['ALLOWED_HOSTS'] )
+ 
 
-
-
-ALLOWED_HOSTS = ['localhost']
 
 # Application definition
 
@@ -126,3 +129,13 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+GEMINI_API_KEY = config['gemini-flash']['API_KEY']
+
+
+
+
+
+
