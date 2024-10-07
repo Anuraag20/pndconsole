@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'pnds',
     'market',
-    'telegram'
+    'forums',
+    'llm',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -133,7 +135,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 GEMINI_API_KEY = config['gemini-flash']['API_KEY']
-
+COIN_PROMPT_PATH = BASE_DIR / 'llm/prompts/coin-prompt.txt'
+SCHEDULE_PROMPT_PATH = BASE_DIR / 'llm/prompts/prompt-test.txt'
 
 
 

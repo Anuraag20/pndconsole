@@ -1,5 +1,4 @@
 from django.db import models
-from telegram.models import Message
 from market.models import (
     Exchange,
     Coin,
@@ -10,7 +9,7 @@ from market.models import (
 
 class ScheduledPump(models.Model):
 
-    message = models.ForeignKey(Message, on_delete = models.CASCADE)
+    message = models.ForeignKey('forums.Message', on_delete = models.CASCADE)
 
     pair = models.ForeignKey(Coin, on_delete = models.CASCADE, null = True, blank = True, related_name = 'pump_pair')
     target = models.ForeignKey(Coin, on_delete = models.CASCADE, null = True, blank = True, related_name = 'pump_target')

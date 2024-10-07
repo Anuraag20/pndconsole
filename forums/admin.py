@@ -1,19 +1,14 @@
 from django.contrib import admin
-
 from .models import (
-       Channel,
-       Message
+    TelegramChannel, 
+    Message
 )
 
-# Register your models here.
-
-@admin.register(Channel)
-class ChannelAdmin(admin.ModelAdmin):
+@admin.register(TelegramChannel)
+class TelegramChannelAdmin(admin.ModelAdmin):
     pass
-
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
     pass
-
 
