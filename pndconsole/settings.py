@@ -46,7 +46,9 @@ INSTALLED_APPS = [
     'market',
     'forums',
     'llm',
-    'rest_framework'
+    'django_celery_beat',
+    'rest_framework',
+    'daphne'
 ]
 
 MIDDLEWARE = [
@@ -139,6 +141,7 @@ COIN_PROMPT_PATH = BASE_DIR / 'llm/prompts/coin-prompt.txt'
 SCHEDULE_PROMPT_PATH = BASE_DIR / 'llm/prompts/prompt-test.txt'
 
 
-
-
+CELERY_BROKER_URL = 'redis://localhost'
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler' 
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 

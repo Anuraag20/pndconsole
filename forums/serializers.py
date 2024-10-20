@@ -21,7 +21,7 @@ class ForumField(serializers.Field):
         
         forum = ForumClass.objects.get_or_create(
                 unique_identifier = data['unique_identifier'],
-                defaults = {'name': data['name']}
+                defaults = {'name': data['name']    }
                 )[0]
 
         return forum
