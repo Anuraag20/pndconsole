@@ -1,0 +1,65 @@
+<html>
+
+	<head>
+		<title>Lets test some sockets</title>
+		<script src = "https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+	</head>
+	<body>
+		<div>
+			<canvas id="market-data"></canvas>
+		</div>
+
+	</body>
+
+	<script>
+
+		const ctx = document.getElementById('market-data');
+
+		const cfg = {
+			type: 'line',
+			data: {
+				datasets: [
+					{
+						label: 'MEXC',
+						data: [{x: new Date(), y: null}]
+					}
+				]
+			},
+			options: {
+				scales: {
+					x: {
+						type: 'time',
+					}
+				}
+			}
+		}
+
+		let chart = new Chart(ctx, cfg)
+
+		const sock = new WebSocket('ws://127.0.0.1:8000/ws/pnd/BTCUSDT/')
+
+		sock.onmessage = (message) => {
+
+			var data = JSON.parse(message.data)
+			data = {	
+				x: new Date(data[0]),
+				y: data[4]
+			}
+
+			chart.data.datasets.forEach((dataset) => {
+
+				dataset.data.at(-1).x.valueOf() == data.x.valueOf() 
+					? dataset.data.splice(dataset.data.length - 1, 1, data) 
+					: dataset.data.push(data)
+
+  			});
+  			chart.update();
+		}
+
+
+
+
+	</script>
+
+</html>

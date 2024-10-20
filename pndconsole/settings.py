@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import configparser
 import json
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,6 +37,10 @@ ALLOWED_HOSTS = json.loads( config['django-settings']['ALLOWED_HOSTS'] )
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
+    'rest_framework',
+    'django_celery_beat',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,9 +51,6 @@ INSTALLED_APPS = [
     'market',
     'forums',
     'llm',
-    'django_celery_beat',
-    'rest_framework',
-    'daphne'
 ]
 
 MIDDLEWARE = [
@@ -135,13 +137,28 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-
 GEMINI_API_KEY = config['gemini-flash']['API_KEY']
 COIN_PROMPT_PATH = BASE_DIR / 'llm/prompts/coin-prompt.txt'
 SCHEDULE_PROMPT_PATH = BASE_DIR / 'llm/prompts/prompt-test.txt'
 
 
 CELERY_BROKER_URL = 'redis://localhost'
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler' 
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+ASGI_APPLICATION = "pndconsole.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+
+
+STOP_MONITORING_AFTER = timedelta(seconds = 60)
+
+# Variable controlling after how many messages the data for the current minute is resent to the consumer
+RESEND_CURRENT_MIN_AFTER = 5
 
