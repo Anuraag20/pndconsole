@@ -1,18 +1,10 @@
+import ccxt.pro as ccxt
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+from asgiref.sync import async_to_sync
 
 # Create your models here.
-
-
-class Exchange(models.Model):
-
-    display_name = models.CharField(max_length = 30, null = True, blank = True)
-    name = models.CharField(max_length = 30)
-    url = models.URLField(null = True, blank = True)
-    logo = models.ImageField(null = True, blank = True)
-    
-    def __str__(self):
-        return f'{self.display_name}({self.name})'
-
 
 class Coin(models.Model):
 
@@ -20,8 +12,77 @@ class Coin(models.Model):
     symbol = models.CharField(max_length = 10)
 
     def __str__(self):
-
         return f'{self.name}({self.symbol})'
+
+'''
+For accessing any of the ccxt methods, 
+
+'''
+class Exchange(models.Model):
+
+    display_name = models.CharField(max_length = 30, null = True, blank = True)
+    name = models.CharField(max_length = 30)
+    url = models.URLField(null = True, blank = True)
+    logo = models.ImageField(null = True, blank = True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # This is only initialized when used with a context manager
+        self._ccxt_exc = getattr(ccxt, self.name, None)
+
+    @property
+    def ccxt_exc(self) -> ccxt.Exchange:
+        assert self._ccxt_exc, f'{self.display_name}({self.name}) is not supported by CCXT.'
+        return self._ccxt_exc
+
+    @ccxt_exc.setter
+    def ccxt_exc(self, value):
+        assert self._ccxt_exc, f'{self.display_name}({self.name}) is not supported by CCXT.'
+        self._ccxt_exc = value
+
+
+    def __str__(self):
+        return f'{self.display_name}({self.name})'
+    
+    def __enter__(self):
+        self.ccxt_exc = self._ccxt_exc()
+    
+    def __exit__(self, *args, **kwargs):
+        async_to_sync(self.ccxt_exc.close)()
+        self.ccxt_exc = self.ccxt_exc.__class__
+        print('still exited!')
+
+
+    async def __aenter__(self):
+        self.__enter__()
+
+    async def __aexit__(self, *args, **kwargs):
+        await self.ccxt_exc.close()
+        self.ccxt_exc = self.ccxt_exc.__class__
+        print('Got it baby!')
+
+
+
+    def fetch_ohlcv(self, target: Coin, pair: Coin, timeframe = '1m', since = None):
+        if not since: 
+            since = round( (timezone.now() - timedelta(hours = 1)).timestamp() * 1000 ) 
+
+        return self.ccxt_exc.fetch_ohlcv(
+                    f'{target.symbol}/{pair.symbol}',
+                    timeframe = timeframe,
+                    since = since
+                )
+
+
+
+    def watch_ohlcv(self, target: Coin, pair: Coin, timeframe = '1m'):
+        return self.ccxt_exc.watch_ohlcv(
+                    f'{target.symbol}/{pair.symbol}',
+                    timeframe = timeframe
+                )
+
+
 
 class OHLVCQueryset(models.QuerySet):
    
@@ -58,6 +119,7 @@ class OHLCVData(models.Model):
     
     market_time = models.DateTimeField()
     added_at = models.DateTimeField(auto_now_add = True)
+
 
     class Meta:
         
