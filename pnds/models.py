@@ -14,7 +14,7 @@ class ScheduledPump(models.Model):
     pair = models.ForeignKey(Coin, on_delete = models.CASCADE, null = True, blank = True, related_name = 'pump_pair')
     target = models.ForeignKey(Coin, on_delete = models.CASCADE, null = True, blank = True, related_name = 'pump_target')
     
-    exchange = models.ForeignKey(Exchange, on_delete = models.CASCADE, null = True, blank = True, related_name = 'schduled')
+    exchanges = models.ManyToManyField(Exchange, related_name = 'schduled')
     scheduled_at = models.DateTimeField(null = True, blank = True)
     
     notes = models.TextField(null = True, blank = True)

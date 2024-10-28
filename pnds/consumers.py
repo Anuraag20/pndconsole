@@ -1,39 +1,64 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from market.models import OHLCVData
+from asgiref.sync import sync_to_async
+from django.conf import settings
+from django.utils import timezone
 
 
 class PNDConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
 
-        self.coin = self.scope["url_route"]["kwargs"]["coin"]
-        self.coin_group_name = f"coin_{self.coin}"
+        self.target = self.scope["url_route"]["kwargs"]["target"]
+        self.pair = self.scope["url_route"]["kwargs"]["pair"]
+        self.group_name = f"{self.target}_{self.pair}"
+        
+        await sync_to_async(print)(self.target, self.pair)
         
         await self.channel_layer.group_add(
-            self.coin_group_name, self.channel_name
+            self.group_name, self.channel_name
         )
-
+        
+        self.initialized = False
         await self.accept()
+    
+    
+    def get_initial_data(self):
+        time = timezone.now() - (settings.FETCH_PREVIOUS_DEFAULT + settings.STOP_CONSUMING_AFTER)
+        data = OHLCVData.objects.filter(
+                    coin__symbol = self.target,
+                    pair__symbol = self.pair,
+                    market_time__gte = time
+                ).get_candles()
+        print(list(data))
+        return list(data)
+
 
     async def disconnect(self, close_code):
-        
         await self.channel_layer.group_discard(
-            self.coin_group_name, self.channel_name
+            self.group_name, self.channel_name
         )
 
-    # Receive message from WebSocket
+
     async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        data = text_data_json["message"]
-         
-        # Send message to room group
-        await self.channel_layer.group_send(
-                self.coin_group_name, {"type": "market_data", "message": data}
-        )
+        
+        data = json.loads(text_data)
+        
+        if data["type"] == "initialize":
+            await self.initialize()
 
-    # Receive message from room group
+    
+    async def initialize(self):
+        data = await sync_to_async(self.get_initial_data)()
+        self.initialized = True
+        await self.send(text_data = json.dumps(data))
+
+
+
     async def market_data(self, event):
         message = event["message"]
-
-        # Send message to WebSocket
-        await self.send(text_data=json.dumps(message))
+        print(message)
+        if self.initialized:
+            await self.send(text_data = json.dumps(message))
+            

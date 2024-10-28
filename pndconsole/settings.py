@@ -83,6 +83,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'pndconsole.wsgi.application'
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 100000
+
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -157,8 +159,11 @@ CHANNEL_LAYERS = {
 }
 
 
-STOP_MONITORING_AFTER = timedelta(seconds = 60)
+STOP_PRODUCING_AFTER = timedelta(minutes = 30)
+STOP_CONSUMING_AFTER = timedelta(minutes = 40)
+FETCH_PREVIOUS_DEFAULT = timedelta(hours = 1)
 
 # Variable controlling after how many messages the data for the current minute is resent to the consumer
 RESEND_CURRENT_MIN_AFTER = 5
+STREAMING_VERSION = 0
 

@@ -15,13 +15,19 @@
 	<script>
 
 		const ctx = document.getElementById('market-data');
-
+		const exchanges = ['mexc']
 		const cfg = {
 			type: 'line',
 			data: {
 				datasets: [
 					{
 						label: 'MEXC',
+						name: 'mexc',
+						data: [{x: new Date(), y: null}]
+					},
+					{
+						label: 'BINANCE',
+						name: 'binance',
 						data: [{x: new Date(), y: null}]
 					}
 				]
@@ -37,25 +43,37 @@
 
 		let chart = new Chart(ctx, cfg)
 
-		const sock = new WebSocket('ws://127.0.0.1:8000/ws/pnd/BTCUSDT/')
-
+		const sock = new WebSocket('ws://127.0.0.1:8000/ws/pnd/BTC-USDT/')
+	
 		sock.onmessage = (message) => {
 
 			var data = JSON.parse(message.data)
-			data = {	
-				x: new Date(data[0]),
-				y: data[4]
-			}
+			
+			data.forEach((point) => {
+				let name = point[6]
+				point = {	
+					x: new Date(point[5]),
+					y: point[3]
+				}
 
-			chart.data.datasets.forEach((dataset) => {
+				for (const dataset of chart.data.datasets){
 
-				dataset.data.at(-1).x.valueOf() == data.x.valueOf() 
-					? dataset.data.splice(dataset.data.length - 1, 1, data) 
-					: dataset.data.push(data)
+					if (dataset.name != name)
+						continue;
 
-  			});
-  			chart.update();
+					dataset.data.at(-1).x.valueOf() == point.x.valueOf() 
+						? dataset.data.splice(dataset.data.length - 1, 1, point) 
+						: dataset.data.push(point)
+
+					// Getting out of the loop when the correct exchange has been found
+					break
+				}
+				chart.update();
+
+			})
 		}
+
+		sock.onopen = () => sock.send(JSON.stringify({'type': 'initialize'}))
 
 
 
