@@ -1,83 +1,37 @@
 <html>
 
 	<head>
+		{% load static %}
 		<title>Lets test some sockets</title>
 		<script src = "https://cdn.jsdelivr.net/npm/chart.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 	</head>
 	<body>
 		<div>
-			<canvas id="market-data"></canvas>
+			{% for exchange in exchanges %}
+			<canvas 
+				id = "{{exchange}}"
+				class = "pnd-canvas"
+			></canvas>
+			{% endfor %}
 		</div>
 
 	</body>
 
+	<script src = "{% static 'pnds/js/charts.js' %}"></script>
 	<script>
 
-		const ctx = document.getElementById('market-data');
-		const exchanges = ['mexc']
-		const cfg = {
-			type: 'line',
-			data: {
-				datasets: [
-					{
-						label: 'MEXC',
-						name: 'mexc',
-						data: [{x: new Date(), y: null}]
-					},
-					{
-						label: 'BINANCE',
-						name: 'binance',
-						data: [{x: new Date(), y: null}]
-					}
-				]
-			},
-			options: {
-				scales: {
-					x: {
-						type: 'time',
-					}
-				}
-			}
-		}
+		var canvases = document.getElementsByClassName('pnd-canvas')
 
-		let chart = new Chart(ctx, cfg)
+		var charts = {}
+		for (let canvas of canvases){
+			charts[canvas.id] = createChart(canvas.id)
+		}
 
 		const sock = new WebSocket('ws://127.0.0.1:8000/ws/pnd/BTC-USDT/')
-	
-		sock.onmessage = (message) => {
-
-			var data = JSON.parse(message.data)
-			
-			data.forEach((point) => {
-				let name = point[6]
-				point = {	
-					x: new Date(point[5]),
-					y: point[3]
-				}
-
-				for (const dataset of chart.data.datasets){
-
-					if (dataset.name != name)
-						continue;
-
-					dataset.data.at(-1).x.valueOf() == point.x.valueOf() 
-						? dataset.data.splice(dataset.data.length - 1, 1, point) 
-						: dataset.data.push(point)
-
-					// Getting out of the loop when the correct exchange has been found
-					break
-				}
-				chart.update();
-
-			})
-		}
-
-		sock.onopen = () => sock.send(JSON.stringify({'type': 'initialize'}))
-
-
-
+		sock.onmessage = (message) => updateChart(message)
+		sock.onopen = () => fetchInitialData(sock)
 
 	</script>
-
+		
 </html>

@@ -61,4 +61,4 @@ class PNDConsumer(AsyncWebsocketConsumer):
         print(message)
         if self.initialized:
             await self.send(text_data = json.dumps(message))
-            
+

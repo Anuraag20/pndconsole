@@ -132,7 +132,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = BASE_DIR / 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -158,6 +158,9 @@ CHANNEL_LAYERS = {
     },
 }
 
+WEB_SOCKET_BASE_URL = 'ws://localhost:8000/'
+
+FINE_GRAINED_MONITORING_BEFORE = timedelta(minutes = 15)
 
 STOP_PRODUCING_AFTER = timedelta(minutes = 30)
 STOP_CONSUMING_AFTER = timedelta(minutes = 40)
