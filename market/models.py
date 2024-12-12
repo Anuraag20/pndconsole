@@ -16,7 +16,7 @@ class Coin(models.Model):
     symbol = models.CharField(max_length = 10)
 
     def __str__(self):
-        return f'{self.name}({self.symbol})'
+        return self.symbol
 
 '''
 For accessing any of the ccxt methods, the object needs to be put in a context manager
@@ -43,7 +43,6 @@ class Exchange(models.Model):
     def __exit__(self, *args, **kwargs):
         async_to_sync(self.ccxt_exc.close)()
         self.__pvt_ccxt = self.ccxt_exc.__class__
-        print('still exited!')
 
 
     async def __aenter__(self):
@@ -52,7 +51,6 @@ class Exchange(models.Model):
     async def __aexit__(self, *args, **kwargs):
         await self.ccxt_exc.close()
         self.__pvt_ccxt = self.ccxt_exc.__class__
-        print('Got it baby!')
 
 
     @property
@@ -89,7 +87,12 @@ class OHLCVQueryset(models.QuerySet):
 
     # edit this to make it functional later
     def annotate_load_delay(self):
-        return self
+        return self.annotate(
+                load_delay = models.ExpressionWrapper(
+                    models.F('added_at') - models.F('received_at'),
+                    output_field = models.DurationField()
+            )
+        )
     
     def annotate_timestamp(self):
      
@@ -104,7 +107,7 @@ class OHLCVQueryset(models.QuerySet):
                     ) * 1000, 
                     output_field = models.IntegerField() 
                 )
-                )
+            )
 
         elif 'postgres' in self.backend:
             return self.annotate(timestamp = Extract('market_time', 'epoch'))
@@ -113,18 +116,34 @@ class OHLCVQueryset(models.QuerySet):
 
     def get_candles(self):
         return self.annotate_timestamp().values_list('open', 'high', 'low', 'close', 'volume', 'timestamp', 'exchange__name', 'coin__symbol', 
-                                                          'pair__symbol')
+                                                          'pair__symbol', 'is_pump')
+    
+    def get_pumps(self):
+        return self.filter(is_pump = True)
 
+
+class IntervalField(models.CharField):
+    description = "Available intervals (frequency) for monitoring an exchange"
+
+    def __init__(self, *args, **kwargs):
+        kwargs["max_length"] = 5
+        kwargs["choices"] = (
+            ('1m', '1-minute'),
+            )
+        kwargs['default'] = '1m'
+    
+        super().__init__(*args, **kwargs)
 
 
 class OHLCVData(models.Model):
-
+    
     objects = OHLCVQueryset.as_manager()
 
     exchange = models.ForeignKey(Exchange, on_delete = models.CASCADE, related_name = 'datum')    
     coin = models.ForeignKey(Coin, on_delete = models.CASCADE, related_name = 'market_main')
     pair = models.ForeignKey(Coin, on_delete = models.CASCADE, related_name = 'market_pair')
-
+    
+    interval = IntervalField()
     open = models.FloatField()
     high = models.FloatField()
     low = models.FloatField()
@@ -140,7 +159,8 @@ class OHLCVData(models.Model):
                 help_text = 'This boolean value is set by the classifier '
             ) 
     is_pump_non_ml = models.BooleanField(
-                        default = False,
+                        null = True,
+                        blank = True,
                         help_text = 'This boolean value will either be set manually or programatically'
                     )
 
@@ -150,19 +170,20 @@ class OHLCVData(models.Model):
 
         assert settings.STREAMING_VERSION == data[0], f'Incorrect version for this consumer node. Please switch to version {settings.STREAMING_VERSION}'
         
-        return cls.from_candle(*data[1:4], received_at, data[4:10], is_pump, is_pump_non_ml)
+        return cls.from_candle(*data[1:5], received_at, data[5:11], is_pump, is_pump_non_ml)
 
 
 
     @classmethod
     def from_candle(cls, 
-                    exchange_id: int, coin_id: int, pair_id: int, received_at: int,
+                    exchange_id: int, coin_id: int, pair_id: int, freq:str, received_at: int,
                     candle: list, is_pump: bool = False, is_pump_non_ml: bool = False
                     ):
         return cls.objects.get_or_create(
                     exchange_id = exchange_id,
                     coin_id = coin_id,
                     pair_id = pair_id,
+                    interval = freq,
                     market_time =  timezone.make_aware( timezone.datetime.fromtimestamp(candle[0]/1000) ),
                     defaults = {
                         'received_at': timezone.make_aware( timezone.datetime.fromtimestamp(received_at/1000) ),
@@ -178,13 +199,13 @@ class OHLCVData(models.Model):
 
 
     def get_candle(self):
-        return [self.open, self.high, self.low, self.close, self.volume, self.market_time.timestamp()*1000, self.exchange.name, self.coin.symbol, self.pair.symbol]
+        return [self.open, self.high, self.low, self.close, self.volume, self.market_time.timestamp()*1000, self.exchange.name, self.coin.symbol, self.pair.symbol, self.is_pump]
 
     class Meta:
         
         verbose_name = 'OHLCV Data'
         verbose_name_plural = 'OHLCV Datum'
-
+        unique_together = ('exchange', 'coin', 'pair', 'market_time',)
 
    
 

@@ -47,12 +47,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     'pnds',
     'market',
     'forums',
     'llm',
 ]
 
+GRAPH_MODELS = {
+  'app_labels': ["pnds", "market", "llm", "forums", "contenttypes"]
+  #'include_models': ['django.contrib.contenttypes.models.ContentType']
+}
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -127,6 +132,7 @@ USE_I18N = True
 
 USE_TZ = True
 
+LOGIN_URL = '/admin/login/'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -168,5 +174,6 @@ FETCH_PREVIOUS_DEFAULT = timedelta(hours = 1)
 
 # Variable controlling after how many messages the data for the current minute is resent to the consumer
 RESEND_CURRENT_MIN_AFTER = 5
-STREAMING_VERSION = 0
+CELERY_STREAMING_VERSION = 2
+STREAMING_VERSION = 2
 

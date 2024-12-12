@@ -42,13 +42,22 @@ detector = GeminiDetector.from_prompt_path(
             response_schema = Response
         )
 
+def get_contenttype_choices():
+    choices = models.Q()
+
+    for m in ContentType.objects.filter(app_label = 'forums'):
+        if issubclass(m.model_class(), Forum):
+            choices |= models.Q(app_label = 'forums', model = m.model)
+
+    return choices
+
 class Message(models.Model):
 
     # TODO: Implemnt a field to capture media
 
-    content_type = models.ForeignKey(ContentType, on_delete = models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete = models.CASCADE, limit_choices_to = get_contenttype_choices)
     object_id = models.PositiveIntegerField()
-    forum = GenericForeignKey("content_type", "object_id")
+    forum = GenericForeignKey("content_type", "object_id") 
 
     content = models.TextField()
     sent_at = models.DateTimeField()
@@ -62,6 +71,7 @@ class Message(models.Model):
         return self.forum.__class__.__name__.lower()
 
     class Meta:
+        # Required to allow for filtering on forums
         indexes = [
                 models.Index(fields = ["content_type", "object_id"]),
                 ]
@@ -99,10 +109,18 @@ def detect_pump_signal(sender, instance, created, **kwargs):
             if result.get('exchanges') and result.get('scheduled_at') and result.get('pair'):
 
                     exchanges = []
-                    for exchange in  result.get('exchanges'):
-                        exchanges.append( Exchange.objects.get_or_create( name = exchange.replace('.com', '').lower() )[0] )
+                    for exchange in result.get('exchanges'):
+                        ename = exchange.replace('.com', '')
+                        exchanges.append( 
+                                         Exchange.objects.get_or_create( 
+                                                                        name = ename.lower(),
+                                                                        defaults = {
+                                                                            'display_name': ename.title()
+                                                                            }
+                                                                        )[0] 
+                                        )
 
-                    pair = Coin.objects.get_or_create(symbol = result.get('pair'))[0]
+                    pair = Coin.objects.get_or_create(symbol = result.get('pair').upper())[0]
                     scheduled_at = to_datetime(result.get('scheduled_at'))
                        
 
@@ -122,7 +140,7 @@ def detect_pump_signal(sender, instance, created, **kwargs):
                             )
                             sp.exchanges.add(*exchanges)
                     else:
-                        print('previous pump detected!')
+                        print('Pump detected at the same time for the forum!')
         group = f'{instance.forum_cls_name}_{instance.forum.unique_identifier}'
         data = {
                 'type': 'broadcast',

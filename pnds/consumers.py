@@ -13,9 +13,7 @@ class PNDConsumer(AsyncWebsocketConsumer):
         self.target = self.scope["url_route"]["kwargs"]["target"]
         self.pair = self.scope["url_route"]["kwargs"]["pair"]
         self.group_name = f"{self.target}_{self.pair}"
-        
-        await sync_to_async(print)(self.target, self.pair)
-        
+         
         await self.channel_layer.group_add(
             self.group_name, self.channel_name
         )
@@ -31,7 +29,7 @@ class PNDConsumer(AsyncWebsocketConsumer):
                     pair__symbol = self.pair,
                     market_time__gte = time
                 ).get_candles()
-        print(list(data))
+        
         return list(data)
 
 
@@ -58,7 +56,6 @@ class PNDConsumer(AsyncWebsocketConsumer):
 
     async def market_data(self, event):
         message = event["message"]
-        print(message)
         if self.initialized:
             await self.send(text_data = json.dumps(message))
 

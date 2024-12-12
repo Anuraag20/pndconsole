@@ -10,6 +10,7 @@ from django.conf import settings
 from django.dispatch import receiver
 from django.utils import timezone
 
+from django.db import IntegrityError
 import json
 
 from kafka import ( 
@@ -29,9 +30,13 @@ from pndconsole.celery import app
 
 from websockets.asyncio.client import connect
 
+from .utils import (
+        get_detector
+)
+
 
 logger = get_task_logger(__name__)
-
+ 
 async def monitor_currency(exchange, target, pair, topic = 'market-monitor', freq = '1m'):        
     #TODO: Find a way to handle this 
     if not exchange.ccxt_exc.has['watchOHLCV']:
@@ -43,10 +48,11 @@ async def monitor_currency(exchange, target, pair, topic = 'market-monitor', fre
     producer = KafkaProducer(
             bootstrap_servers = 'localhost:9092',
             value_serializer = lambda value: json.dumps([
-                    settings.STREAMING_VERSION, 
+                    settings.CELERY_STREAMING_VERSION, 
                     exchange.id, 
                     target.id, 
                     pair.id, 
+                    freq,
                     *value
                 ]).encode('utf-8'),
     )
@@ -65,16 +71,15 @@ async def monitor_currency(exchange, target, pair, topic = 'market-monitor', fre
     init_candles = await exchange.fetch_ohlcv(
                 target,
                 pair,
-                timeframe = '1m', 
+                timeframe = freq, 
             )
-    
+   
     for candle in init_candles: 
         producer.send(
                 topic = topic,
                 value = candle,
                 timestamp_ms = round(timezone.now().timestamp() * 1000)
             )
- 
     while True:  
         data = await exchange.watch_ohlcv(target, pair, timeframe = freq) 
        
@@ -93,7 +98,7 @@ async def monitor_currency(exchange, target, pair, topic = 'market-monitor', fre
                     timestamp_ms = prev_time
                 )
                 logger.info('Sent previous')
-
+ 
             producer.send(
                 topic = topic,
                 value = candlestick,
@@ -122,7 +127,6 @@ async def monitor_messages(uri, scheduled_pump: ScheduledPump):
         )
     
     async with connect(settings.WEB_SOCKET_BASE_URL + 'ws/forum/' + uri + '/') as websocket:
-            import re        
             messages = []
             async for message in websocket:
 
@@ -142,7 +146,7 @@ async def monitor_messages(uri, scheduled_pump: ScheduledPump):
 
                 
 @app.task
-def monitor_currency_task(exchange: str, target: int, pair: int, topic: str):
+def monitor_currency_task(exchange: str, target: int, pair: int, topic: str, freq = '1m'):
 
     target = Coin.objects.get(id = target)
     pair = Coin.objects.get(id = pair)
@@ -150,38 +154,66 @@ def monitor_currency_task(exchange: str, target: int, pair: int, topic: str):
     
     with exchange:
 
-        asyncio.run(monitor_currency(exchange, target, pair, topic))
+        asyncio.run(monitor_currency(exchange, target, pair, topic, freq))
 
 @app.task
 def consumer_currency_task(topic = 'market-monitor'):
     consumer = KafkaConsumer(
             bootstrap_servers = 'localhost:9092', 
             group_id = None,
-            value_deserializer = lambda val: json.loads(val.decode("utf-8"))
-            
+            auto_offset_reset = 'earliest',
+            value_deserializer = lambda val: json.loads(val.decode("utf-8")),
+            consumer_timeout_ms = 90000 
+            # If a message is not received for 20 seconds, it is assumed that the producer has stopped
+            # This is done because the producers are supposed to send a message once atleast 60 seconds
     )
     consumer.subscribe(topic)
     
+    exchanges_init = {}
+    detectors = {}
+
     layer = get_channel_layer()
-    start_time = timezone.now()
-
+    
+    
     for message in consumer:
+        try:
             
-        candle = OHLCVData.from_stream( 
-                    data = message.value,
-                    received_at = message.timestamp,
-                    is_pump = False,
-                    is_pump_non_ml = False
-                ) 
-        data = {
-                    'type': 'market_data',
-                    'message': [candle.get_candle()]
-                }
-        async_to_sync(layer.group_send)('BTC_USDT', data)
+            exchange_id = message.value[1]
 
-        if timezone.now() - start_time > settings.STOP_CONSUMING_AFTER:
-            logger.info('Im outta here!')
-            break  
+            if not exchanges_init.get(exchange_id):
+                exchanges_init[exchange_id] = []
+            
+            exchanges_init[exchange_id].append(message.value)
+            counter = len(exchanges_init[exchange_id])
+
+            if counter < settings.FETCH_PREVIOUS_DEFAULT.total_seconds()//60:
+                is_pump = False            
+            else: 
+
+                if counter == settings.FETCH_PREVIOUS_DEFAULT.total_seconds()//60:
+                        logger.info(f'This is for exchange {exchange_id}')        
+                        detectors[exchange_id] = get_detector(exchanges_init[exchange_id])
+                
+                is_pump = detectors[exchange_id](message.value[5], message.value[9])
+
+
+            candle = OHLCVData.from_stream(
+                        data = message.value,
+                        received_at = message.timestamp,
+                        is_pump = is_pump,
+                        is_pump_non_ml = False
+                    ) 
+
+            socket_message = candle.get_candle()
+            data = {
+                        'type': 'market_data',
+                        'message': [candle.get_candle()]
+                    }
+
+            async_to_sync(layer.group_send)(f'{socket_message[7]}_{socket_message[8]}', data)
+
+        except IntegrityError as e:
+            logger.warning(e)
 
 
     logger.info('Consumption complete!')
