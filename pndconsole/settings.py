@@ -101,6 +101,7 @@ DATABASES = {
     }
 }
 
+CSRF_TRUSTED_ORIGINS = json.loads( config['django-settings']['CSRF_TRUSTED_ORIGINS'] )
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

@@ -17,6 +17,9 @@ const createChart = exchange => {
 			scales: {
 				x: {
 					type: 'time',
+					time: {
+						unit: 'minute'
+					}
 				}
 			}
 		}
