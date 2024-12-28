@@ -10,22 +10,43 @@ import numpy as np
 from adtk.detector import InterQuartileRangeAD
 from django.utils import timezone
 
+from asgiref.sync import (
+        async_to_sync
+)
+from market.models import OHLCVData
 
 def _detector(model, x, y):
 
     input = pd.Series([y], index = [timezone.make_aware( timezone.datetime.fromtimestamp(x/1000) )])
     return bool(model.predict(input).iloc[0])
 
-def get_detector(data):
+def get_detector(data, timestamp_idx = 0, target_idx = 4):
     data = np.array(data)
 
-    index = [timezone.make_aware( timezone.datetime.fromtimestamp(t/1000) ) for t in data[:, 5].astype(int)]
-    input = pd.Series(data[:, 9].astype(float), index = index)
+    index = [timezone.make_aware( timezone.datetime.fromtimestamp(t/1000) ) for t in data[:, timestamp_idx].astype(int)]
+    input = pd.Series(data[:, target_idx].astype(float), index = index)
     iqr = InterQuartileRangeAD(c = 1.5)
     iqr.fit(input)
 
     return lambda x, y: _detector(iqr, x, y)
 
+
+def create_candle(candle, serializer, layer, detector = None):
+        
+        # 0 and 4 are the indices of the timestamp and the closing price respectively
+        ohlcv = OHLCVData.from_stream(
+                    data = serializer(candle),
+                    received_at = round(timezone.now().timestamp() * 1000),
+                    is_pump = False if not detector else detector(candle[0], candle[4]),
+                    is_pump_non_ml = False
+                ) 
+
+        socket_message = ohlcv.get_candle()
+        data = {
+                    'type': 'market_data',
+                    'message': [socket_message]
+                }
+        async_to_sync(layer.group_send)(f'{socket_message[7]}_{socket_message[8]}', data)
 
 def start_monitoring(at, *args, **kwargs):
     PeriodicTask.objects.get_or_create(
@@ -34,16 +55,6 @@ def start_monitoring(at, *args, **kwargs):
             name = f"Monitor '{kwargs['exchange'].upper()}' for {kwargs['topic']}",
             args = json.dumps(args),
             kwargs = json.dumps(kwargs),
-            one_off = True
-    )
-
-
-def start_consuming(at, topic): 
-    PeriodicTask.objects.get_or_create(
-            clocked  = ClockedSchedule.objects.get_or_create(clocked_time = at)[0], 
-            task = 'pnds.tasks.consumer_currency_task', 
-            name = f"Consumer for {topic}",
-            args = json.dumps([topic]),
             one_off = True
     )
 

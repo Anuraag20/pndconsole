@@ -160,7 +160,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [{"address": "redis://localhost:6379"}],
         },
     },
 }
@@ -170,7 +170,8 @@ WEB_SOCKET_BASE_URL = 'ws://localhost:8000/'
 FINE_GRAINED_MONITORING_BEFORE = timedelta(minutes = 15)
 
 STOP_PRODUCING_AFTER = timedelta(minutes = 30)
-STOP_CONSUMING_AFTER = timedelta(minutes = 40)
+STOP_CONSUMING_AFTER = STOP_PRODUCING_AFTER
+# This variable is useful when consumption and production are done by separate processes
 FETCH_PREVIOUS_DEFAULT = timedelta(hours = 1)
 
 # Variable controlling after how many messages the data for the current minute is resent to the consumer

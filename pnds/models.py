@@ -14,7 +14,6 @@ from django.dispatch import receiver
 
 from .utils import (
         start_monitoring,
-        start_consuming,
         monitor_forum
 )
 # Create your models here.
@@ -115,4 +114,3 @@ def schedule_monitoring(sender, instance: ScheduledPump, created, **kwargs):
                     freq = instance.interval 
                 )
 
-        start_consuming(instance.scheduled_at, topic)
