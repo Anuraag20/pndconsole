@@ -103,14 +103,12 @@ def schedule_message_monitoring(sender, instance: ScheduledPump, *args, **kwargs
 def schedule_monitoring(sender, instance: ScheduledPump, created, **kwargs):
 
     if instance.target and instance.exchanges.exists():
-        topic = f'pnd_{instance.id}'
         for exchange in instance.exchanges.all():  
             start_monitoring(
                     at = instance.scheduled_at,
                     exchange = exchange.name, 
                     target = instance.target.id, 
                     pair = instance.pair.id,
-                    topic = topic,
                     freq = instance.interval 
                 )
 

@@ -151,8 +151,7 @@ COIN_PROMPT_PATH = BASE_DIR / 'llm/prompts/coin-prompt.txt'
 SCHEDULE_PROMPT_PATH = BASE_DIR / 'llm/prompts/prompt-test.txt'
 
 
-CELERY_BROKER_URL = 'redis://localhost'
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+CELERY_BROKER_URL = config['django-settings']['CELERY_BROKER_URL']
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 ASGI_APPLICATION = "pndconsole.asgi.application"
@@ -160,13 +159,12 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [{"address": "redis://localhost:6379"}],
+            "hosts": [{ "address": config['django-settings']['REDIS_URL'] }],
         },
     },
 }
 
-WEB_SOCKET_BASE_URL = 'ws://localhost:8000/'
-
+WEB_SOCKET_BASE_URL = config['django-settings']['WEB_SOCKET_BASE_URL'] 
 FINE_GRAINED_MONITORING_BEFORE = timedelta(minutes = 15)
 
 STOP_PRODUCING_AFTER = timedelta(minutes = 30)

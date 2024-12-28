@@ -68,7 +68,7 @@
 		
 		const protocol = location.protocol == 'https:' ? 'wss': 'ws' 
 		
-		const sock = new WebSocket(protocol + '://' + location.host + '/ws/pnd/{{pump.target.symbol}}-{{pump.pair.symbol}}/')
+		const sock = new WebSocket(protocol + '://' + location.hostname + '/ws/pnd/{{pump.target.symbol}}-{{pump.pair.symbol}}/')
 		
 		
 

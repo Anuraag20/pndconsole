@@ -22,3 +22,7 @@ urlpatterns = [
     path('forum/', include('forums.urls')),
     path('', include('pnds.urls'))
 ]
+
+# Will only work in debug mode!
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+urlpatterns += staticfiles_urlpatterns()

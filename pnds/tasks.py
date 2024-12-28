@@ -28,11 +28,11 @@ from .utils import (
         get_detector
 )
 from asgiref.sync import sync_to_async
-
+import json
 
 logger = get_task_logger(__name__)
  
-async def monitor_currency(exchange, target, pair, topic = 'market-monitor', freq = '1m'):        
+async def monitor_currency(exchange, target, pair, freq = '1m'):        
     #TODO: Find a way to handle this 
     if not exchange.ccxt_exc.has['watchOHLCV']:
         logger.error(f'Exchange {exchange} does not have the watchOHLCV method')
@@ -110,21 +110,23 @@ async def monitor_messages(uri, scheduled_pump: ScheduledPump):
 
                     messages.append(message)
 
-                    response = ''.join(c for c in detector.prompt(messages) if c.isalpha())
+                    response = json.loads(detector.prompt(messages))
                     logger.info(f'COIN DETECTOR: {response}')
-                    if response != '' and not ' ' in response:
 
-                        coin = await Coin.objects.aget_or_create(symbol = response)
+                    if response.values():
+
+                        coin = await Coin.objects.aget_or_create(symbol = list(response.values())[0])
                         coin = coin[0]
                         scheduled_pump.target = coin
                         await scheduled_pump.asave()
 
                         break
+                    
 
 
                 
 @app.task
-def monitor_currency_task(exchange: str, target: int, pair: int, topic: str, freq = '1m'):
+def monitor_currency_task(exchange: str, target: int, pair: int, freq = '1m'):
 
     target = Coin.objects.get(id = target)
     pair = Coin.objects.get(id = pair)
@@ -132,12 +134,7 @@ def monitor_currency_task(exchange: str, target: int, pair: int, topic: str, fre
     
     with exchange:
 
-        asyncio.run(monitor_currency(exchange, target, pair, topic, freq))
-
-
-    
-    
-
+        asyncio.run(monitor_currency(exchange, target, pair, freq))
 
 @app.task
 def monitor_messages_for_coin_task(uri: str, scheduled_pump: int): 
