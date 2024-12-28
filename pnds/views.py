@@ -23,11 +23,15 @@ def index(request):
     pumps = ScheduledPump.objects.filter(false_alarm = False)
     candles = OHLCVData.objects.annotate_load_delay()    
     
+    avg_load_delay = candles.aggregate(Avg('load_delay'))['load_delay__avg']
+
+    manually_classified = candles.filter(is_pump_non_ml__isnull = False).count() or 1
+
     stats = {
         'pumps_count': pumps.count(),
         'exchanges_count': candles.values('exchange').distinct().count(),
         'coins_count': candles.values('coin').distinct().count(),
-        'avg_load_delay': str(round(candles.aggregate(Avg('load_delay'))['load_delay__avg'].total_seconds())) + ' seconds',
+        'avg_load_delay': str(round(avg_load_delay.total_seconds()) if avg_load_delay else '-') + ' seconds',
         'pumps_by_week': list(pumps.annotate(weekday = ExpressionWrapper(
                         Func(
                             Value('%w'),
@@ -41,7 +45,7 @@ def index(request):
         'accuracy': str(round(
             (
                 (candles.filter(is_pump = True, is_pump_non_ml = True).count() + candles.filter(is_pump = False, is_pump_non_ml = False).count())
-                /candles.filter(is_pump_non_ml__isnull = False).count()) * 100, 2
+                / manually_classified) * 100, 2
             )) + '%'
         
         }

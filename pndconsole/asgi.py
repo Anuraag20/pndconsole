@@ -17,7 +17,6 @@ from channels.routing import ProtocolTypeRouter
 from django.core.asgi import get_asgi_application
 from . import routing
 
-print('lets a go')
 
 application = ProtocolTypeRouter(
     {
