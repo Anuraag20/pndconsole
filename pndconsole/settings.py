@@ -47,17 +47,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_extensions',
     'pnds',
     'market',
     'forums',
     'llm',
 ]
 
-GRAPH_MODELS = {
-  'app_labels': ["pnds", "market", "llm", "forums", "contenttypes"]
-  #'include_models': ['django.contrib.contenttypes.models.ContentType']
-}
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
