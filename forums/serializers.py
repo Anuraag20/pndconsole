@@ -9,14 +9,13 @@ class ForumField(serializers.Field):
 
     
     def to_internal_value(self, data):
-        
         if issubclass(data.__class__, Forum):
             return data
 
         elif not isinstance(data, dict):
             raise serializers.ValidationError('Field should be a \'dict\'')
-                
-        content_type = ContentType.objects.get(id = data.pop('content_type'))
+        
+        content_type = ContentType.objects.get(model = data.pop('content_type'))
         ForumClass = content_type.model_class()
         
         forum = ForumClass.objects.get_or_create(
