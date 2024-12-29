@@ -88,12 +88,15 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 100000
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+   'default': {
+       'ENGINE': 'django.db.backends.postgresql',
+       'NAME': config['django-settings']['DB_NAME'],        
+       'USER': config['django-settings']['DB_USER'],
+       'PASSWORD': config['django-settings']['DB_PASSWORD'],
+       'HOST': config['django-settings']['DB_HOST'],
+       'PORT': config['django-settings']['DB_PORT']
+   },
 }
 
 CSRF_TRUSTED_ORIGINS = json.loads( config['django-settings']['CSRF_TRUSTED_ORIGINS'] )

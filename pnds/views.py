@@ -1,20 +1,16 @@
 from django.db.models import (
     Avg,
     Count,
-    ExpressionWrapper,
     F,
-    Func,
-    IntegerField,
     Q, 
-    Value,
 )
+from django.db.models.functions import Extract
 from django.conf import settings
 from django.shortcuts import render
 from market.models import OHLCVData
 from .models import ScheduledPump
 from django.contrib.auth.decorators import login_required
 
-from rest_framework.serializers import Serializer
 # Create your views here.
 
 @login_required
@@ -32,15 +28,7 @@ def index(request):
         'exchanges_count': candles.values('exchange').distinct().count(),
         'coins_count': candles.values('coin').distinct().count(),
         'avg_load_delay': str(round(avg_load_delay.total_seconds()) if avg_load_delay else '-') + ' seconds',
-        'pumps_by_week': list(pumps.annotate(weekday = ExpressionWrapper(
-                        Func(
-                            Value('%w'),
-                            F('scheduled_at'),
-                            function = 'STRFTIME',
-                        ),
-                        output_field = IntegerField()
-                    )
-                ).values('weekday').annotate(c = Count('weekday'))),
+        'pumps_by_week': list(pumps.annotate(weekday = Extract('scheduled_at', 'DOW')).values('weekday').annotate(c = Count('weekday'))),
         'pumps_by_channel': list(pumps.annotate(channel =  F('message__telegramchannel__name')).values('channel').annotate(c = Count('channel'))),
         'accuracy': str(round(
             (
