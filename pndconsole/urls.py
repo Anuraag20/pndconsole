@@ -22,7 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('forum/', include('forums.urls')),
     path('', include('pnds.urls'))
-] + debug_toolbar_urls
+] + debug_toolbar_urls()
 
 # Will only work in debug mode!
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
