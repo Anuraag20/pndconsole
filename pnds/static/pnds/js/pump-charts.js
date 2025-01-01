@@ -37,7 +37,7 @@ const updateChart = (message) => {
 		let chart = charts[name]
 			
 		point = {	
-			x: new Date(pointData[5]),
+			x: new Date(pointData[5]*1000),
 			y: pointData[3]
 		}
 

@@ -194,7 +194,7 @@ class OHLCVData(models.Model):
 
 
     def get_candle(self):
-        return [self.open, self.high, self.low, self.close, self.volume, self.market_time.timestamp()*1000, self.exchange.name, self.coin.symbol, self.pair.symbol, self.is_pump]
+        return [self.open, self.high, self.low, self.close, self.volume, self.market_time.timestamp(), self.exchange.name, self.coin.symbol, self.pair.symbol, self.is_pump]
 
     class Meta:
         

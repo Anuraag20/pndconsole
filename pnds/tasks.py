@@ -15,7 +15,6 @@ from llm.detectors import GeminiDetector
 from market.models import (
         Exchange,
         Coin,
-        OHLCVData
 )
 
 from pndconsole.celery import app
@@ -66,6 +65,7 @@ async def monitor_currency(exchange, target, pair, freq = '1m'):
         await sync_to_async(create_candle)(candle, serializer = value_serializer, layer = layer)
 
     detector = get_detector(init_candles)
+    del init_candles
 
     while True:  
         data = await exchange.watch_ohlcv(target, pair, timeframe = freq) 
@@ -91,8 +91,10 @@ async def monitor_currency(exchange, target, pair, freq = '1m'):
         prev = candlestick
         
         if timezone.now() - start_time > settings.STOP_PRODUCING_AFTER:
+            del detector, candlestick, prev
             logger.info('Done producing!')
             break
+        
 
 
 async def monitor_messages(uri, scheduled_pump: ScheduledPump):
@@ -112,13 +114,16 @@ async def monitor_messages(uri, scheduled_pump: ScheduledPump):
                     response = json.loads(detector.prompt(messages))
                     logger.info(f'COIN DETECTOR: {response}')
 
-                    if response.values():
+                    if type(response) == str or response.values():
+                        if not response:
+                            continue
 
                         coin = await Coin.objects.aget_or_create(symbol = list(response.values())[0])
                         coin = coin[0]
                         scheduled_pump.target = coin
                         await scheduled_pump.asave()
-
+                        
+                        del detector, messages
                         break
                     
 

@@ -52,7 +52,7 @@ def start_monitoring(at, *args, **kwargs):
     PeriodicTask.objects.get_or_create(
             clocked  = ClockedSchedule.objects.get_or_create(clocked_time = at)[0], 
             task = 'pnds.tasks.monitor_currency_task', 
-            name = f"Monitor '{kwargs['exchange'].upper()}'",
+            name = f"Monitor '{kwargs['exchange'].upper()}' for {kwargs['target']} at {at}"
             args = json.dumps(args),
             kwargs = json.dumps(kwargs),
             one_off = True

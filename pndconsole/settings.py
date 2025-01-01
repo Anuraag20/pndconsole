@@ -28,13 +28,10 @@ config.read(BASE_DIR / 'pndconsole/config.ini')
 SECRET_KEY = config['django-settings']['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config['django-settings']['DEBUG']
+DEBUG = config.getboolean('django-settings', 'DEBUG')
 
 ALLOWED_HOSTS = json.loads( config['django-settings']['ALLOWED_HOSTS'] )
  
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
 
 # Application definition
 
@@ -56,11 +53,11 @@ INSTALLED_APPS = [
 ]
 
 
-INSTALLED_APPS = INSTALLED_APPS + ['debug_toolbar','pympler']
-DEBUG_TOOLBAR_PANELS = (
-    'debug_toolbar.panels.timer.TimerPanel',
-    'pympler.panels.MemoryPanel',
-    )
+# INSTALLED_APPS = INSTALLED_APPS + ['debug_toolbar','pympler']
+#DEBUG_TOOLBAR_PANELS = (
+#    'debug_toolbar.panels.timer.TimerPanel',
+#    'pympler.panels.MemoryPanel',
+#)
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -70,7 +67,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware'
+#    'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
 
 ROOT_URLCONF = 'pndconsole.urls'
