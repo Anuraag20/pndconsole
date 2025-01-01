@@ -75,7 +75,7 @@ class Message(models.Model):
         indexes = [
                 models.Index(fields = ["content_type", "object_id"]),
                 ]
-
+#
 
 class Forum(models.Model):
 

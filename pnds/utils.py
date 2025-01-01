@@ -7,7 +7,6 @@ from django_celery_beat.models import (
 import json
 import pandas as pd
 import numpy as np
-from adtk.detector import InterQuartileRangeAD
 from django.utils import timezone
 
 from asgiref.sync import (
@@ -22,6 +21,7 @@ def _detector(model, x, y):
 
 def get_detector(data, timestamp_idx = 0, target_idx = 4):
     data = np.array(data)
+    from adtk.detector import InterQuartileRangeAD
 
     index = [timezone.make_aware( timezone.datetime.fromtimestamp(t/1000) ) for t in data[:, timestamp_idx].astype(int)]
     input = pd.Series(data[:, target_idx].astype(float), index = index)

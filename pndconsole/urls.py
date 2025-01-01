@@ -25,5 +25,5 @@ urlpatterns = [
 ] + debug_toolbar_urls()
 
 # Will only work in debug mode!
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-urlpatterns += staticfiles_urlpatterns()
+#from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+#urlpatterns += staticfiles_urlpatterns()

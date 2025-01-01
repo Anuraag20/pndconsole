@@ -1,5 +1,5 @@
 from typing import Union
-import ccxt.pro as ccxt
+import importlib
 from django.conf import settings
 from django.db import models
 from django.db.models.functions import Extract, TruncSecond
@@ -30,19 +30,17 @@ class Exchange(models.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # This is only initialized when used with a context manager
-        self.__pvt_ccxt = getattr(ccxt, self.name, None)
+        self.ccxt_exc = None
 
     def __str__(self):
         return f'{self.display_name}({self.name})'
     
     def __enter__(self):
-        self.__pvt_ccxt = self.__pvt_ccxt()
+        self.ccxt_exc = getattr(importlib.import_module('ccxt.pro'), self.name)
     
     def __exit__(self, *args, **kwargs):
         async_to_sync(self.ccxt_exc.close)()
-        self.__pvt_ccxt = self.ccxt_exc.__class__
+        self.ccxt_exc = None
 
 
     async def __aenter__(self):
@@ -51,12 +49,6 @@ class Exchange(models.Model):
     async def __aexit__(self, *args, **kwargs):
         await self.ccxt_exc.close()
         self.__pvt_ccxt = self.ccxt_exc.__class__
-
-
-    @property
-    def ccxt_exc(self):
-        assert self.__pvt_ccxt, f'{self.display_name}({self.name}) is not supported by CCXT.'
-        return self.__pvt_ccxt
 
     def fetch_ohlcv(self, target: Coin, pair: Coin, timeframe = '1m', since = None):
         if not since: 

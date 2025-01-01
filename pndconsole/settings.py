@@ -32,12 +32,13 @@ DEBUG = config['django-settings']['DEBUG']
 
 ALLOWED_HOSTS = json.loads( config['django-settings']['ALLOWED_HOSTS'] )
  
-
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 
 # Application definition
 
 INSTALLED_APPS = [
-    'debug_toolbar',
     'daphne',
     'channels',
     'rest_framework',
@@ -53,6 +54,13 @@ INSTALLED_APPS = [
     'forums',
     'llm',
 ]
+
+
+INSTALLED_APPS = INSTALLED_APPS + ['debug_toolbar','pympler']
+DEBUG_TOOLBAR_PANELS = (
+    'debug_toolbar.panels.timer.TimerPanel',
+    'pympler.panels.MemoryPanel',
+    )
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

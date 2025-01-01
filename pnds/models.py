@@ -2,7 +2,6 @@ from django.db import models
 from django.db.models import Q
 from django.conf import settings
 from django.utils import timezone
-from websockets.http11 import MAX_LINE_LENGTH
 from market.models import (
     IntervalField,
     Exchange,
@@ -80,6 +79,9 @@ class ScheduledPump(models.Model):
     
 
     def __str__(self):
+        
+        return 'some string'
+
 
         string = f'Pump Scheduled at {self.scheduled_at} on {self.exchanges_name}'
         if self.target:

@@ -1,11 +1,11 @@
-from rest_framework import serializers
+from rest_framework.serializers import Field, ModelSerializer
 
 from .models import Message, Forum
 from django.contrib.contenttypes.models import ContentType
 
 
 
-class ForumField(serializers.Field):
+class ForumField(Field):
 
     
     def to_internal_value(self, data):
@@ -28,7 +28,7 @@ class ForumField(serializers.Field):
     def to_representation(self, value):
         return value.name
 
-class MessageSerializer(serializers.ModelSerializer):
+class MessageSerializer(ModelSerializer):
     
     forum = ForumField(required = True)
     
