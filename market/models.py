@@ -36,7 +36,10 @@ class Exchange(models.Model):
         return f'{self.display_name}({self.name})'
     
     def __enter__(self):
+        
         self.ccxt_exc = getattr(importlib.import_module('ccxt.pro'), self.name)
+        assert self.ccxt_exc, f'{self.display_name}({self.name}) is not supported by CCXT.'
+        self.ccxt_exc = self.ccxt_exc()
     
     def __exit__(self, *args, **kwargs):
         async_to_sync(self.ccxt_exc.close)()
