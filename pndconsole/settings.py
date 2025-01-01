@@ -37,6 +37,7 @@ ALLOWED_HOSTS = json.loads( config['django-settings']['ALLOWED_HOSTS'] )
 # Application definition
 
 INSTALLED_APPS = [
+    'debug_toolbar',
     'daphne',
     'channels',
     'rest_framework',
