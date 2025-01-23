@@ -1,54 +1,44 @@
-<html>
+{% extends 'pnds/base.html' %}
+{% load dashboard_elements %}
+{% load static %}
 
-	<head>
-		{% load static %}
-		{% load dashboard_elements %}
+{% block title %} Details {% endblock %}
 
-		<meta name="viewport" content="width=device-width, initial-scale=1">
+{% block body %}
+	<h2 class = 'title'>{{ pump.target.symbol }}/{{ pump.pair.symbol }}</h2>
+	<div class="container-fluid">
 		
-		<link 
-			href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
-			rel="stylesheet" 
-			integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" 
-			crossorigin="anonymous"
-		>
-
-		<title>Pump Details</title>
-	</head>
-	<body>
-		<h2 class = 'title'>{{ pump.target.symbol }}/{{ pump.pair.symbol }}</h2>
-		<div class="container-fluid">
-			
-			{% for exchange in exchanges %}
-			<div class="row">
-				<div class="col-8 border rounded">
-					<canvas 
-						id = "{{exchange}}"
-						class = "pnd-canvas"
-					></canvas>
-				</div>
-				<div class="col-4 border rounded text-center">
-
-				{% scorecard heading="High" value=0 id=exchange|add:'-high' grid='r' %}
-				{% scorecard heading="Low" value=0 id=exchange|add:'-low' grid='r' %}
-				{% scorecard heading="Largest Change (%)" value=0 id=exchange|add:'-lc' grid='r' %}
-				{% scorecard heading="First Anomaly at" value='N/A' id=exchange|add:'-fa' grid='r' %}
-				{% scorecard heading="Total Anomalies Found" value=0 id=exchange|add:'-c' grid='r' %}
-
-				</div>
+		{% for exchange in exchanges %}
+		<div class="row">
+			<div class="col-8">
+				<canvas 
+					id = "{{exchange}}"
+					class = "pnd-canvas"
+				></canvas>
 			</div>
-			{% endfor %}
+			<div class="col-3 text-center">
+
+			{% scorecard heading="High" value=0 id=exchange|add:'-high' grid='r' %}
+			{% scorecard heading="Low" value=0 id=exchange|add:'-low' grid='r' %}
+			{% scorecard heading="Largest Change (%)" value=0 id=exchange|add:'-lc' grid='r' %}
+			{% scorecard heading="First Anomaly at" value='N/A' id=exchange|add:'-fa' grid='r' %}
+			{% scorecard heading="Total Anomalies Found" value=0 id=exchange|add:'-c' grid='r' %}
+
+			</div>
 		</div>
-		
-		{% if not pump.is_active %}
-		<div id = 'p-data'>
-			{% for exchange, data in exchange_data.items %}
-				{{ data|json_script:exchange }}
-			{% endfor %}
-		</div>
-		{% endif %}
-	</body>
+		{% endfor %}
+	</div>
 	
+	{% if not pump.is_active %}
+	<div id = 'p-data'>
+		{% for exchange, data in exchange_data.items %}
+			{{ data|json_script:exchange }}
+		{% endfor %}
+	</div>
+	{% endif %}
+{% endblock %}
+
+{% block js %}
 	<script 
 	src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
 	integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
@@ -57,6 +47,7 @@
 	<script src = "https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 	<script src = "{% static 'pnds/js/pump-charts.js' %}"></script>
+	<script>console.log('atleast loaded')</script>
 	<script>
 
 		var canvases = document.getElementsByClassName('pnd-canvas')
@@ -68,7 +59,7 @@
 		
 		const protocol = location.protocol == 'https:' ? 'wss': 'ws' 
 		
-		const sock = new WebSocket(protocol + '://' + location.hostname + '/ws/pnd/{{pump.target.symbol}}-{{pump.pair.symbol}}/')
+		const sock = new WebSocket(protocol + '://' + location.hostname + ':8000/ws/pnd/{{pump.target.symbol}}-{{pump.pair.symbol}}/')
 		
 		
 
@@ -79,5 +70,5 @@
 		createStaticCharts()
 		{% endif %}
 	</script>
+{% endblock %}
 		
-</html>

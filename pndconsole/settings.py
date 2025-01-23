@@ -104,6 +104,10 @@ DATABASES = {
        'HOST': config['django-settings']['DB_HOST'],
        'PORT': config['django-settings']['DB_PORT']
    },
+   'dev': {
+       'ENGINE': 'django.db.backends.sqlite3',
+       'NAME': 'db.sqlite3'
+    },
 }
 
 CSRF_TRUSTED_ORIGINS = json.loads( config['django-settings']['CSRF_TRUSTED_ORIGINS'] )
