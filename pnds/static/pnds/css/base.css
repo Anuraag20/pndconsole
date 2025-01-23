@@ -1,0 +1,22 @@
+body {
+  background-color: #121212;
+  color: white;
+  margin: 0;
+}
+
+.col-sm, .row-sm, .col-8, #overview-table{
+  margin: 0.2rem;
+  border:1px solid #212121;
+  border-radius: 1rem;
+  background-color: #212121;
+  justify-content: space-around;
+}
+
+.scorecard .heading{
+	font-size:1.25rem;
+}
+
+.pnd-canvas{
+	height: 20rem;
+	max-height: 20rem;
+}
