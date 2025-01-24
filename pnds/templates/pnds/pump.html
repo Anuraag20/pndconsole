@@ -5,7 +5,8 @@
 {% block title %} Details {% endblock %}
 
 {% block body %}
-	<h2 class = 'title'>{{ pump.target.symbol }}/{{ pump.pair.symbol }}</h2>
+	
+	<h2 class = 'title mt-2'>Pump on {{ pump.target.symbol }}/{{ pump.pair.symbol }}</h2>
 	<div class="container-fluid">
 		
 		{% for exchange in exchanges %}
@@ -47,7 +48,6 @@
 	<script src = "https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 	<script src = "{% static 'pnds/js/pump-charts.js' %}"></script>
-	<script>console.log('atleast loaded')</script>
 	<script>
 
 		var canvases = document.getElementsByClassName('pnd-canvas')
@@ -61,8 +61,6 @@
 		
 		const sock = new WebSocket(protocol + '://' + location.hostname + ':8000/ws/pnd/{{pump.target.symbol}}-{{pump.pair.symbol}}/')
 		
-		
-
 		{% if pump.is_active %}
 		sock.onmessage = (message) => updateChart(message)
 		sock.onopen = () => fetchInitialData(sock)

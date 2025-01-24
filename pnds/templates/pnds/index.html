@@ -14,12 +14,12 @@
 	<div class="container-fluid">
 	  <div class="row">
 		  
+		{% scorecard 'Messages Analyzed' stats.msg_count %}
 		{% scorecard 'Pumps Studied' stats.pumps_count %}  
 		{% scorecard 'Exchanges Monitored' stats.exchanges_count %}
 
 		{% scorecard 'Coins in Database' stats.coins_count %}
 		{% scorecard 'Accuracy' stats.accuracy %}
-		{% scorecard 'Average Load Delay' stats.avg_load_delay %}
 	  </div>
 
 	  <div class="row">

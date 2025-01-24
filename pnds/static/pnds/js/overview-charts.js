@@ -11,7 +11,8 @@ const createPieChart = () => {
 			datasets: [{
 				label: 'Organized pumps',
 				data: pData.map(entry => entry.c),
-				hoverOffset: 4
+				hoverOffset: 4,
+				borderWidth: 0
 			}]
 		}
 
@@ -42,6 +43,7 @@ const createBarChart = () => {
 		datasets: [{
 			label: 'Most Popular Weekdays for Pumps',
 			data: bData.map(entry => entry.c),
+			backgroundColor: '#f3933d' 
 		}]
 	};
 	const cfg = {

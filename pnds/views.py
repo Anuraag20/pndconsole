@@ -7,19 +7,20 @@ from django.db.models import (
 from django.db.models.functions import Extract
 from django.conf import settings
 from django.shortcuts import render
+from numpy import who
+from forums.models import Message
 from market.models import OHLCVData
 from .models import ScheduledPump
 from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
-@login_required
+#@login_required
 def index(request):
    
     pumps = ScheduledPump.objects.filter(false_alarm = False)
     candles = OHLCVData.objects.annotate_load_delay()    
     
-    avg_load_delay = candles.aggregate(Avg('load_delay'))['load_delay__avg']
 
     manually_classified = candles.filter(is_pump_non_ml__isnull = False).count() or 1
 
@@ -27,8 +28,9 @@ def index(request):
         'pumps_count': pumps.count(),
         'exchanges_count': candles.values('exchange').distinct().count(),
         'coins_count': candles.values('coin').distinct().count(),
-        'avg_load_delay': str(round(avg_load_delay.total_seconds()) if avg_load_delay else '-') + ' seconds',
+        #'avg_load_delay': str(round(avg_load_delay.total_seconds()) if avg_load_delay else '-') + ' seconds',
         'pumps_by_week': list(pumps.annotate(weekday = Extract('scheduled_at', 'DOW')).values('weekday').annotate(c = Count('weekday'))),
+        'msg_count': Message.objects.all().count(),
         'pumps_by_channel': list(pumps.annotate(channel =  F('message__telegramchannel__name')).values('channel').annotate(c = Count('channel'))),
         'accuracy': str(round(
             (
@@ -44,7 +46,7 @@ def index(request):
         }
     return render(request, 'pnds/index.html', context)
 
-@login_required
+#@login_required
 def pump_view(request, pump_id):
     
     pump = ScheduledPump.objects.get(id = pump_id)

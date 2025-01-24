@@ -9,7 +9,7 @@ const createChart = exchange => {
 					label: exchange.toUpperCase(),
 					name: exchange,
 					data: [{x: null, y: null}],
-					pointBackgroundColor: ["#3366CC80"]
+					pointBackgroundColor: ["#f3933d80"],
 				},
 			]
 		},
@@ -57,7 +57,7 @@ const updateChart = (message) => {
 				if(firstAnomaly.textContent.trim() == 'N/A') firstAnomaly.textContent = point.x	
 			}
 			else {
-				var color = "#3366CC90"
+				var color = "#f3933d80"
 			}
 
 			if (dataset.data.at(-1).x && dataset.data.at(-1).x.valueOf() == point.x.valueOf()){
@@ -70,7 +70,7 @@ const updateChart = (message) => {
 				if (pointData.at(-1)) counts.textContent = parseInt(counts.textContent) + 1
 			}
 				
-
+				
 
 			if ( parseFloat(high.textContent) < point.y ){
 				high.textContent = point.y
