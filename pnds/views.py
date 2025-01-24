@@ -1,5 +1,4 @@
 from django.db.models import (
-    Avg,
     Count,
     F,
     Q, 
@@ -7,11 +6,9 @@ from django.db.models import (
 from django.db.models.functions import Extract
 from django.conf import settings
 from django.shortcuts import render
-from numpy import who
 from forums.models import Message
 from market.models import OHLCVData
 from .models import ScheduledPump
-from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
