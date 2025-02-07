@@ -1,5 +1,4 @@
-# A Study of Cryptocurrency Market Manipulation
-## Using Real-Time Data Analysis
+# Detection and Analysis of Cryptocurrency Market Manipulation
 ![image](pnds/static/pnds/images/site-ss.png)
 
 ## The Problem
