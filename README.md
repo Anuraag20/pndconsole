@@ -16,3 +16,6 @@ the pumps to the end user.
 
 ## Detailed Report
 This project was done as a part of my masters. The full project report can be found [here](https://anuraag.tech/media/msc-project-report.pdf).
+
+## Running the application
+The dockerized version of the application along with instructions to run the same can be found [here](https://github.com/Anuraag20/pndtracker).
