@@ -33,55 +33,7 @@
 
 		  </div>
 	  </div>
-	  <div class = "row">
-		  <table id = "overview-table" class = "responsive">
-			  <thead>
-				  <th>Organized by</th>
-				  <th>Exchange(s)</th>
-				  <th>Target</th>
-				  <th>Pair</th>
-				  <th>Scheduled At</th>
-				  <th>Status</th>
-				  <th>Link</th>
-			  </thead>
-			  <tbody>
-				  {% for pump in pumps %}
-					  <tr>
-						  <td>{{ pump.message.forum.name }}</td>
-						  <td>
-							  {% for exchange in pump.exchanges.all %} 
-								  {{exchange.name|upper}} {% if not forloop.last %}, {% endif %}  
-							  {% endfor %} 
-						  </td>
-						  <td>{{ pump.target.symbol|default:"-" }}</td>
-						  <td>{{ pump.pair.symbol|default:"-"  }}</td>
-						  <td data-sort = '{{ pump.scheduled_at|date:"U" }}'>{{ pump.scheduled_at }}</td>
-						  <td>
-							  {% if pump.is_active %} 
-								  <b>ACTIVE</b> 
-							  {% elif pump.is_upcoming %} 
-								  <b>UPCOMING</b> 
-							  {% else %}
-								  <b>COMPLETED</b>
-							  {% endif %}
-						  </td>
-						  <td>
-							  <a 
-								  href = "{% url 'pnds:pump' pump_id=pump.id %}"
-								  target = "blank"
-								  rel = "noopener noreferrer"
-								  > 
-								  LINK
-							  </a>
-						  </td>
-
-						</tr>
-						{% endfor %}
-				</tbody>
-			</table>
-		</div>
 	</div>
-
 {% endblock %}
 
 {% block js %}
