@@ -1,5 +1,5 @@
 # Cryptocurrency Market Monitor
-![image](static/pnds/images/site-ss.png)
+![image](pnds/static/pnds/images/site-ss.png)
 
 ## The Problem
 A pump and dump is a manipulative scheme that attempts to boost the price of a stock or security through fake recommendations. These recommendations are based on false, misleading, or greatly exaggerated statements. The perpetrators of a pump-and-dump scheme already have an established position in the company's stock and will sell their positions  after the hype has led to a higher share price ([source](https://www.investopedia.com/terms/p/pumpanddump.asp)).
