@@ -1,4 +1,5 @@
-# Cryptocurrency Market Monitor
+# A Study of Cryptocurrency Market Manipulation
+## Using Real-Time Data Analysis
 ![image](pnds/static/pnds/images/site-ss.png)
 
 ## The Problem
